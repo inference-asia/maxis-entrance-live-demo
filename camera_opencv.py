@@ -21,45 +21,10 @@ from datetime import datetime
 FONT_SIZE = 15
 FONT = ImageFont.load_default() 
 
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-IMAGE_WIDTH = 1280
-IMAGE_HEIGHT = 720
-RATIO = SCREEN_WIDTH / IMAGE_WIDTH
-
 # Load detector models
 yolo_model = YOLO('weights/yolov8m.pt')
 
-
 class Camera(BaseCamera):
-
-    def infer_class(cropped, model):
-    
-        device = torch.device('cuda')
-
-        data_transforms = {
-            'default': transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
-        }
-        
-        img = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
-        PIL_img = Image.fromarray(img)
-        PIL_img = data_transforms['default'](PIL_img)
-        PIL_img = PIL_img.unsqueeze(0)
-        
-
-        with torch.no_grad():
-            inputs = PIL_img.to(device)
-            outputs = model(inputs)
-            outputs = torch.sigmoid(outputs)
-        
-        conf = outputs.tolist()[0]
-        # positive_result_index = np.where([x >= threshold for x in conf])[0].tolist()
-        return conf
-
 
     def person_draw(img, bboxes):
         pil_image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -139,7 +104,6 @@ class Camera(BaseCamera):
             if people_boxes:                
                 # Loop for every person detected
                 for i, bbox in enumerate(people_boxes):
-                    # Initialise list of classes for a single person
                     
                     try:
                         person_id = int(people_detected[0].boxes.id[i])
@@ -183,8 +147,6 @@ class Camera(BaseCamera):
                                 "ymax": y2,
                                 "name": status
                             }
-
-                            # print(data)
 
                             requests.post('http://localhost:8418',json = data)
 
